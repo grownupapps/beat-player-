@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 
 app.get('/', (req, res) => {
-  res.send('Beat Player ist online auf Render!');
+  res.send('<h1>Hallo! Der Beat-Player ist online! 🎵</h1>');
 });
 
 const port = process.env.PORT || 3000;
