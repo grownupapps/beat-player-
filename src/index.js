@@ -1,19 +1,11 @@
-import React from 'react';
-import { createRoot } from 'react-dom/client';
-import { BrowserRouter as Router } from 'react-router-dom';
-import AdminRoutes from './admin/adminRoutes';
-// Später können wir hier auch die Public Player Routes importieren
-// import PublicPlayerRoutes from './public-player/playerRoutes';
+const express = require('express');
+const app = express();
 
-const App = () => {
-  return (
-    <Router>
-      <AdminRoutes />
-      {/* Später: <PublicPlayerRoutes /> */}
-    </Router>
-  );
-};
+app.get('/', (req, res) => {
+  res.send('Beat Player ist online auf Render!');
+});
 
-const container = document.getElementById('root');
-const root = createRoot(container);
-root.render(<App />);
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+  console.log(`Server läuft auf Port ${port}`);
+});
