@@ -1,25 +1,23 @@
 {
   "name": "beat-player",
   "version": "1.0.0",
+  "description": "A beat player application for Shopify stores",
+  "main": "src/index.js",
   "engines": {
-    "node": "18.x"  
+    "node": "18.x"
   },
-  "type": "module",
   "scripts": {
     "start": "node src/index.js",
-    "build": "react-scripts build",
-    "heroku-postbuild": "npm install && npm run build"
+    "dev": "nodemon src/index.js"
   },
   "dependencies": {
     "express": "^4.18.2",
-    "mongoose": "^7.x.x",
-    "multer": "^1.4.5-lts.1",
+    "mongoose": "^7.6.3",
+    "dotenv": "^16.3.1",
     "cors": "^2.8.5",
-    "dotenv": "^16.x.x",
-    "react": "^18.x.x",
-    "react-dom": "^18.x.x",
-    "react-router-dom": "^6.x.x",
-    "@radix-ui/react-icons": "^1.x.x"
-   
+    "multer": "^1.4.5-lts.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
   }
 }
