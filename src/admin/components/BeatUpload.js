@@ -1,70 +1,14 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
-const BeatUpload = () => {
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    bpm: '',
-    key: '',
-    productUrl: '',
-    beat: null,
-    cover: null
-  });
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleFileChange = (e) => {
-    const { name, files } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: files[0]
-    }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const formDataToSend = new FormData();
-    
-    Object.keys(formData).forEach(key => {
-      formDataToSend.append(key, formData[key]);
-    });
-
-    try {
-      const response = await fetch('http://localhost:5000/api/beats', {
-        method: 'POST',
-        body: formDataToSend
-      });
-      
-      if (response.ok) {
-        setFormData({
-          title: '',
-          description: '',
-          bpm: '',
-          key: '',
-          productUrl: '',
-          beat: null,
-          cover: null
-        });
-        // Optional: Callback zur Dashboard-Komponente um die Liste zu aktualisieren
-        // onUploadSuccess && onUploadSuccess();
-      }
-    } catch (error) {
-      console.error('Error submitting beat:', error);
-    }
-  };
-
+const BeatUpload = ({ formData, editingBeat, handleInputChange, handleFileChange, handleSubmit }) => {
   return (
-    <Card className="p-6">
-      <h2 className="text-2xl font-bold mb-4">Upload New Beat</h2>
+    <Card className="p-6 mb-8">
+      <h2 className="text-2xl font-bold mb-4">
+        {editingBeat ? 'Edit Beat' : 'Upload New Beat'}
+      </h2>
       
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
@@ -132,7 +76,7 @@ const BeatUpload = () => {
               name="beat"
               onChange={handleFileChange}
               accept="audio/*"
-              required
+              required={!editingBeat}
             />
           </div>
 
@@ -143,13 +87,13 @@ const BeatUpload = () => {
               name="cover"
               onChange={handleFileChange}
               accept="image/*"
-              required
+              required={!editingBeat}
             />
           </div>
         </div>
 
         <Button type="submit" className="w-full">
-          Upload Beat
+          {editingBeat ? 'Update Beat' : 'Upload Beat'}
         </Button>
       </form>
     </Card>

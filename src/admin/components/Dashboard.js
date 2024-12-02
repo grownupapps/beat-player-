@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { Trash2, Edit, Play, Pause } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import BeatUpload from './BeatUpload';
+import { fetchBeats, createBeat, updateBeat, deleteBeat } from '../services/adminAPI';
 
-const AdminDashboard = () => {
+const Dashboard = () => {
   const [beats, setBeats] = useState([]);
   const [editingBeat, setEditingBeat] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentAudio, setCurrentAudio] = useState(null);
-  
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -21,16 +21,15 @@ const AdminDashboard = () => {
   });
 
   useEffect(() => {
-    fetchBeats();
+    loadBeats();
   }, []);
 
-  const fetchBeats = async () => {
+  const loadBeats = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/beats');
-      const data = await response.json();
+      const data = await fetchBeats();
       setBeats(data);
     } catch (error) {
-      console.error('Error fetching beats:', error);
+      console.error('Error loading beats:', error);
     }
   };
 
@@ -59,30 +58,23 @@ const AdminDashboard = () => {
     });
 
     try {
-      const url = editingBeat 
-        ? `http://localhost:5000/api/beats/${editingBeat._id}`
-        : 'http://localhost:5000/api/beats';
-      
-      const method = editingBeat ? 'PUT' : 'POST';
-      
-      const response = await fetch(url, {
-        method,
-        body: formDataToSend
-      });
-      
-      if (response.ok) {
-        setFormData({
-          title: '',
-          description: '',
-          bpm: '',
-          key: '',
-          productUrl: '',
-          beat: null,
-          cover: null
-        });
-        setEditingBeat(null);
-        fetchBeats();
+      if (editingBeat) {
+        await updateBeat(editingBeat._id, formDataToSend);
+      } else {
+        await createBeat(formDataToSend);
       }
+      
+      setFormData({
+        title: '',
+        description: '',
+        bpm: '',
+        key: '',
+        productUrl: '',
+        beat: null,
+        cover: null
+      });
+      setEditingBeat(null);
+      loadBeats();
     } catch (error) {
       console.error('Error submitting beat:', error);
     }
@@ -90,10 +82,8 @@ const AdminDashboard = () => {
 
   const handleDelete = async (id) => {
     try {
-      await fetch(`http://localhost:5000/api/beats/${id}`, {
-        method: 'DELETE'
-      });
-      fetchBeats();
+      await deleteBeat(id);
+      loadBeats();
     } catch (error) {
       console.error('Error deleting beat:', error);
     }
@@ -134,112 +124,25 @@ const AdminDashboard = () => {
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      <Card className="p-6 mb-8">
-        <h2 className="text-2xl font-bold mb-4">
-          {editingBeat ? 'Edit Beat' : 'Upload New Beat'}
-        </h2>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block mb-2">Title</label>
-            <Input
-              type="text"
-              name="title"
-              value={formData.title}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block mb-2">Description</label>
-            <Input
-              type="text"
-              name="description"
-              value={formData.description}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block mb-2">BPM</label>
-              <Input
-                type="number"
-                name="bpm"
-                value={formData.bpm}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block mb-2">Key</label>
-              <Input
-                type="text"
-                name="key"
-                value={formData.key}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block mb-2">Product URL</label>
-            <Input
-              type="url"
-              name="productUrl"
-              value={formData.productUrl}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block mb-2">Beat File</label>
-              <Input
-                type="file"
-                name="beat"
-                onChange={handleFileChange}
-                accept="audio/*"
-                required={!editingBeat}
-              />
-            </div>
-
-            <div>
-              <label className="block mb-2">Cover Image</label>
-              <Input
-                type="file"
-                name="cover"
-                onChange={handleFileChange}
-                accept="image/*"
-                required={!editingBeat}
-              />
-            </div>
-          </div>
-
-          <Button type="submit" className="w-full">
-            {editingBeat ? 'Update Beat' : 'Upload Beat'}
-          </Button>
-        </form>
-      </Card>
+      <BeatUpload 
+        formData={formData}
+        editingBeat={editingBeat}
+        handleInputChange={handleInputChange}
+        handleFileChange={handleFileChange}
+        handleSubmit={handleSubmit}
+      />
 
       <div className="space-y-4">
         <h2 className="text-2xl font-bold">Uploaded Beats</h2>
-        
         {beats.map(beat => (
           <Card key={beat._id} className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <img 
-                  src={`http://localhost:5000/${beat.coverImage}`} 
+                  src={`${process.env.REACT_APP_API_URL}/${beat.coverImage}`}
                   alt={beat.title}
                   className="w-16 h-16 object-cover rounded"
                 />
-                
                 <div>
                   <h3 className="font-bold">{beat.title}</h3>
                   <p className="text-sm text-gray-600">
@@ -252,9 +155,9 @@ const AdminDashboard = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => togglePlay(`http://localhost:5000/${beat.beatFile}`)}
+                  onClick={() => togglePlay(`${process.env.REACT_APP_API_URL}/${beat.beatFile}`)}
                 >
-                  {isPlaying && currentAudio?.src === `http://localhost:5000/${beat.beatFile}` 
+                  {isPlaying && currentAudio?.src === `${process.env.REACT_APP_API_URL}/${beat.beatFile}` 
                     ? <Pause className="h-4 w-4" />
                     : <Play className="h-4 w-4" />
                   }
@@ -284,4 +187,4 @@ const AdminDashboard = () => {
   );
 };
 
-export default AdminDashboard;
+export default Dashboard;
